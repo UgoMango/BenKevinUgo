@@ -20,7 +20,7 @@ class MyApp extends StatelessWidget {
       title: 'Stay Healthy',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.deepPurple),
-        scaffoldBackgroundColor: const Color(0xFFCA411B),
+        scaffoldBackgroundColor: const Color.fromARGB(255, 227, 175, 161),
       ),
       home: const MyHomePage(title: "Hallo Ugo"),
     );
@@ -91,21 +91,27 @@ class _MyHomePageState extends State<MyHomePage> {
 class FitnessTracker extends StatefulWidget {
   final int index;
   const FitnessTracker({
-    Key? key,
+    super.key,
     required this.index,
-  }) : super(key: key);
+  });
 
   @override
   State<FitnessTracker> createState() => _FitnessTrackerState();
 }
 
 class _FitnessTrackerState extends State<FitnessTracker> {
-  List<int> counters = [0, 0, 0];
-
-  void _incrementCounter(int i) {
+  int runningCounter = 0;
+  int drinkingCounter = 0;
+  int eatingCounter = 0;
+  void _incrementCounter(ElementType type) {
     setState(() {
-      i = 0;
-      counters[i]++;
+      if (type == ElementType.running) {
+        runningCounter += 200;
+      } else if (type == ElementType.drinking) {
+        drinkingCounter += 200;
+      } else if (type == ElementType.eating) {
+        eatingCounter += 200;
+      }
     });
   }
 
@@ -125,9 +131,9 @@ class _FitnessTrackerState extends State<FitnessTracker> {
               iconData: Icons.directions_run,
               unit: 'm',
               onTap: () {
-                _incrementCounter(0);
+                _incrementCounter(ElementType.running);
               },
-              counter: (0),
+              counter: runningCounter,
             ),
             const SizedBox(height: 20),
             TrackingElement(
@@ -135,9 +141,9 @@ class _FitnessTrackerState extends State<FitnessTracker> {
               iconData: Icons.local_drink,
               unit: 'l',
               onTap: () {
-                _incrementCounter(0);
+                _incrementCounter(ElementType.drinking);
               },
-              counter: (1),
+              counter: drinkingCounter,
             ),
             const SizedBox(height: 20),
             TrackingElement(
@@ -145,9 +151,9 @@ class _FitnessTrackerState extends State<FitnessTracker> {
               iconData: Icons.fastfood,
               unit: 'cal',
               onTap: () {
-                _incrementCounter(2);
+                _incrementCounter(ElementType.eating);
               },
-              counter: (2),
+              counter: eatingCounter,
             ),
           ],
         ),
@@ -156,24 +162,32 @@ class _FitnessTrackerState extends State<FitnessTracker> {
   }
 }
 
+enum ElementType { running, drinking, eating }
+
 class TrackingElement extends StatelessWidget {
   final Color color;
   final IconData iconData;
   final String unit;
   final VoidCallback onTap;
   final int counter;
-
   const TrackingElement({
-    Key? key,
+    super.key,
     required this.color,
     required this.iconData,
     required this.unit,
     required this.onTap,
     required this.counter,
-  }) : super(key: key);
-
+  });
   @override
   Widget build(BuildContext context) {
+    Color progressColor = Colors.black;
+    if (counter >= 5000) {
+      progressColor = Colors.green;
+    } else if (counter >= 3000) {
+      progressColor = Colors.yellow;
+    } else if (counter > 0) {
+      progressColor = Colors.red;
+    }
     return InkWell(
       onTap: onTap,
       child: Column(
@@ -189,7 +203,7 @@ class TrackingElement extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Text(
-                  '$counter/ 5000 $unit',
+                  '${counter.toString()}/ 5000 $unit',
                   style: const TextStyle(color: Colors.black, fontSize: 20),
                 ),
               ],
@@ -198,6 +212,7 @@ class TrackingElement extends StatelessWidget {
           LinearProgressIndicator(
             value: counter / 5000,
             backgroundColor: Colors.white,
+            valueColor: AlwaysStoppedAnimation<Color>(progressColor),
             minHeight: 10.0,
           ),
         ],
